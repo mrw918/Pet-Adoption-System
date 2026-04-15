@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="宠物领养平台 - 给流浪宠物一个温暖的家">
+    <title>萌宠领养 | 专业宠物领养平台</title>
+    <!-- Tailwind CSS CDN (生产环境建议本地引入) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+        
+        :root {
+            --primary: #ff4d4f;
+        }
+        
+        * {
+            font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+        }
+        
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 
+                        0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        .card-image {
+            height: 220px;
+            object-fit: cover;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        .price-tag {
+            background: linear-gradient(90deg, #ff4d4f, #ff7875);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航栏（仿电商风格） -->
+    <nav class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-[#ff4d4f] rounded-2xl flex items-center justify-center text-white text-3xl">🐾</div>
+                    <div>
+                        <span class="text-2xl font-bold text-[#ff4d4f]">萌宠领养</span>
+                        <span class="text-gray-400 text-sm ml-1">PetAdopt</span>
+                    </div>
+                </div>
+
+                <!-- 搜索栏 -->
+                <div class="flex-1 max-w-xl mx-8">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput"
+                            placeholder="搜索宠物名字 / 品种 / 年龄..."
+                            class="w-full h-11 pl-12 pr-6 bg-gray-100 rounded-3xl text-base focus:outline-none focus:ring-2 focus:ring-[#ff4d4f] transition-all"
+                        >
+                        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">🔍</div>
+                    </div>
+                </div>
+
+                <!-- 右侧菜单 -->
+                <div class="flex items-center gap-8 text-sm font-medium">
+                    <a href="#" onclick="filterByStatus('all')" class="hover:text-[#ff4d4f] transition-colors">全部宠物</a>
+                    <a href="#" onclick="filterByStatus('待领养')" class="hover:text-[#ff4d4f] transition-colors">待领养</a>
+                    <a href="#" onclick="filterByStatus('已预约')" class="hover:text-[#ff4d4f] transition-colors">已预约</a>
+                    <a href="#" class="flex items-center gap-1 hover:text-[#ff4d4f] transition-colors">
+                        <span>❤️</span>
+                        <span>我的收藏</span>
+                    </a>
+                    <div class="flex items-center gap-2 bg-[#fff1f0] text-[#ff4d4f] px-5 py-1.5 rounded-3xl text-sm font-medium cursor-pointer hover:bg-[#ff4d4f] hover:text-white transition-colors">
+                        <span>发布领养信息</span>
+                    </div>
+                    <div class="w-8 h-8 bg-gray-200 rounded-2xl flex items-center justify-center text-xl">👤</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄Banner -->
+    <div class="bg-gradient-to-r from-[#fff1f0] to-white py-6 border-b">
+        <div class="max-w-screen-2xl mx-auto px-6 flex items-center justify-between">
+            <div>
+                <div class="inline-flex items-center bg-white text-[#ff4d4f] text-xs font-medium px-4 py-1 rounded-3xl mb-3 border border-[#ff4d4f]/20">
+                    🏆 2026年度最受欢迎领养平台
+                </div>
+                <h1 class="text-5xl font-bold leading-none text-gray-900">
+                    每一个小生命<br>都值得一个家
+                </h1>
+                <p class="mt-4 text-xl text-gray-600 max-w-md">
+                    1000+ 只待领养萌宠 · 已成功帮助 12834 只宠物找到家
+                </p>
+                <div class="flex gap-4 mt-8">
+                    <button onclick="document.getElementById('petGrid').scrollIntoView({ behavior: 'smooth' })" 
+                            class="px-8 py-4 bg-[#ff4d4f] hover:bg-[#ff3838] text-white font-medium rounded-3xl flex items-center gap-3 transition-colors">
+                        <span>立即浏览待领养宠物</span>
+                        <span class="text-2xl">→</span>
+                    </button>
+                    <button onclick="alert('已跳转至领养流程页面（演示）')" 
+                            class="px-8 py-4 border border-gray-300 hover:border-[#ff4d4f] hover:text-[#ff4d4f] font-medium rounded-3xl transition-colors">
+                        如何领养？
+                    </button>
+                </div>
+            </div>
+            <div class="hidden lg:block">
+                <img src="https://picsum.photos/id/1015/620/380" 
+                     alt="可爱宠物" 
+                     class="rounded-3xl shadow-2xl max-h-[380px] w-auto object-cover">
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容：仿图片中的卡片网格 -->
+    <div class="max-w-screen-2xl mx-auto px-6 py-10">
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <h2 class="text-3xl font-bold text-gray-900">今日推荐领养宠物</h2>
+                <div class="px-4 py-1 bg-[#fff1f0] text-[#ff4d4f] text-sm font-medium rounded-3xl flex items-center gap-1">
+                    <div class="w-2 h-2 bg-[#ff4d4f] rounded-full animate-pulse"></div>
+                    实时更新
+                </div>
+            </div>
+            
+            <div class="text-sm text-gray-500 flex items-center gap-6">
+                <span class="flex items-center gap-1">
+                    <span class="text-[#ff4d4f]">📍</span> 香港特别行政区
+                </span>
+                <span>共 <span id="totalCount" class="font-semibold text-[#ff4d4f]">12</span> 只宠物待领养</span>
+            </div>
+        </div>
+
+        <!-- 宠物卡片网格（核心部分，高度仿图片界面） -->
+        <div id="petGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <!-- 卡片将由 JavaScript 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t py-12">
+        <div class="max-w-screen-2xl mx-auto px-6 text-center text-gray-500 text-sm">
+            © 2026 萌宠领养平台 | 香港特别行政区 | 所有领养信息均经过专业机构审核
+            <div class="mt-3 flex justify-center gap-8 text-xs">
+                <a href="#" class="hover:text-[#ff4d4f]">领养协议</a>
+                <a href="#" class="hover:text-[#ff4d4f]">隐私政策</a>
+                <a href="#" class="hover:text-[#ff4d4f]">联系我们</a>
+                <a href="#" class="hover:text-[#ff4d4f]">关于我们</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 专业级数据结构（便于后续扩展数据库）
+        const petsData = [
+            {
+                id: 1,
+                name: "豆豆",
+                breed: "泰迪贵宾犬",
+                age: "1岁6个月",
+                gender: "雄性",
+                health: "已疫苗、已绝育、健康良好",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/1015/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 1243 次"
+            },
+            {
+                id: 2,
+                name: "奶茶",
+                breed: "英国短毛猫",
+                age: "8个月",
+                gender: "雌性",
+                health: "已疫苗、未绝育、体检合格",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/1005/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 892 次"
+            },
+            {
+                id: 3,
+                name: "小黑",
+                breed: "中华田园犬",
+                age: "2岁",
+                gender: "雄性",
+                health: "已疫苗、已绝育、轻微皮肤病已治愈",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/133/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 1567 次"
+            },
+            {
+                id: 4,
+                name: "雪球",
+                breed: "荷兰侏儒兔",
+                age: "1岁",
+                gender: "雌性",
+                health: "已疫苗、健康良好",
+                status: "已预约",
+                imageUrl: "https://picsum.photos/id/201/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 634 次"
+            },
+            {
+                id: 5,
+                name: "橘橘",
+                breed: "美短橘猫",
+                age: "3个月",
+                gender: "雄性",
+                health: "已疫苗、未绝育",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/1009/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 2109 次"
+            },
+            {
+                id: 6,
+                name: "旺财",
+                breed: "金毛寻回犬",
+                age: "4岁",
+                gender: "雄性",
+                health: "已疫苗、已绝育、老年犬",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/1016/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 987 次"
+            },
+            {
+                id: 7,
+                name: "米粒",
+                breed: "仓鼠",
+                age: "6个月",
+                gender: "雌性",
+                health: "健康良好",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/160/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 312 次"
+            },
+            {
+                id: 8,
+                name: "可乐",
+                breed: "边境牧羊犬",
+                age: "1岁8个月",
+                gender: "雄性",
+                health: "已疫苗、已绝育、精力充沛",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/201/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 1456 次"
+            },
+            {
+                id: 9,
+                name: "花花",
+                breed: "布偶猫",
+                age: "2岁",
+                gender: "雌性",
+                health: "已疫苗、已绝育",
+                status: "已预约",
+                imageUrl: "https://picsum.photos/id/1005/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 789 次"
+            },
+            {
+                id: 10,
+                name: "小白",
+                breed: "波斯猫",
+                age: "11个月",
+                gender: "雄性",
+                health: "已疫苗、健康良好",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/133/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 1023 次"
+            },
+            {
+                id: 11,
+                name: "阿黄",
+                breed: "拉布拉多",
+                age: "3岁",
+                gender: "雄性",
+                health: "已疫苗、已绝育",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/1015/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 654 次"
+            },
+            {
+                id: 12,
+                name: "珍珠",
+                breed: "荷兰猪",
+                age: "1岁",
+                gender: "雌性",
+                health: "健康良好",
+                status: "待领养",
+                imageUrl: "https://picsum.photos/id/160/600/400",
+                priceTag: "免费领养",
+                soldText: "浏览 421 次"
+            }
+        ]
+
+        // 渲染卡片函数（高度仿图片中的商品卡片布局）
+        function renderPetCards(filteredPets) {
+            const grid = document.getElementById('petGrid')
+            grid.innerHTML = ''
+
+            filteredPets.forEach(pet => {
+                const cardHTML = `
+                <div class="product-card bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm group">
+                    <!-- 宠物照片 -->
+                    <div class="relative">
+                        <img src="${pet.imageUrl}" 
+                             alt="${pet.name}" 
+                             class="card-image w-full">
+                        
+                        <!-- 状态徽章 -->
+                        ${pet.status === '待领养' 
+                            ? `<div class="status-badge absolute top-4 left-4 bg-emerald-500 text-white text-xs font-medium px-3 py-1 rounded-3xl flex items-center gap-1 shadow-inner">
+                                <span class="text-base leading-none">🐾</span> 待领养
+                               </div>` 
+                            : `<div class="status-badge absolute top-4 left-4 bg-amber-500 text-white text-xs font-medium px-3 py-1 rounded-3xl flex items-center gap-1 shadow-inner">
+                                <span class="text-base leading-none">📅</span> 已预约
+                               </div>`}
+                        
+                        <!-- 仿图片右上角价格标签 -->
+                        <div class="price-tag absolute top-4 right-4 text-white text-sm font-semibold px-4 h-7 flex items-center rounded-3xl shadow-md">
+                            ${pet.priceTag}
+                        </div>
+                    </div>
+
+                    <!-- 卡片内容 -->
+                    <div class="p-4">
+                        <!-- 宠物名字 -->
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-2xl font-bold text-gray-900">${pet.name}</h3>
+                            <span class="text-3xl">${pet.gender === '雄性' ? '♂' : '♀'}</span>
+                        </div>
+                        
+                        <!-- 品种 -->
+                        <p class="text-[#ff4d4f] font-medium mt-1">${pet.breed}</p>
+                        
+                        <!-- 详细信息 -->
+                        <div class="mt-4 grid grid-cols-2 gap-y-3 text-sm">
+                            <div>
+                                <span class="text-gray-400 text-xs block">年龄</span>
+                                <span class="font-medium">${pet.age}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 text-xs block">健康状况</span>
+                                <span class="font-medium text-emerald-600">${pet.health}</span>
+                            </div>
+                            <div class="col-span-2">
+                                <span class="text-gray-400 text-xs block">领养状态</span>
+                                <span class="inline-flex items-center px-3 py-0.5 rounded-3xl text-xs font-medium ${pet.status === '待领养' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                    ${pet.status}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 分割线 -->
+                        <div class="my-4 border-t border-dashed"></div>
+                        
+                        <!-- 底部仿图片已售信息 -->
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-gray-500">${pet.soldText}</span>
+                            <button onclick="applyAdopt(${pet.id})" 
+                                    class="bg-[#ff4d4f] hover:bg-[#ff3838] text-white text-sm font-medium px-6 py-2 rounded-3xl transition-colors flex items-center gap-2 group-hover:scale-105">
+                                立即申请领养
+                                <span class="text-lg">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>`
+
+                grid.innerHTML += cardHTML
+            })
+
+            // 更新总数
+            document.getElementById('totalCount').textContent = filteredPets.length
+        }
+
+        // 申请领养按钮事件（演示）
+        function applyAdopt(id) {
+            const pet = petsData.find(p => p.id === id)
+            if (pet) {
+                alert(`🎉 您已成功申请领养「${pet.name}」\n\n系统已将您的申请提交至领养审核中心\n\n请准备好：\n1. 身份证/回乡证\n2. 居住地址证明\n3. 领养协议签署\n\n审核结果将在 48 小时内通知您！`)
+            }
+        }
+
+        // 状态筛选
+        function filterByStatus(status) {
+            let filtered = petsData
+            
+            if (status !== 'all') {
+                filtered = petsData.filter(pet => pet.status === status)
+            }
+            
+            renderPetCards(filtered)
+            
+            // 高亮当前筛选按钮（简单实现）
+            console.log(`%c已筛选：${status === 'all' ? '全部' : status}`, 'color:#ff4d4f;font-weight:600')
+        }
+
+        // 搜索功能
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput')
+            searchInput.addEventListener('input', (e) => {
+                const keyword = e.target.value.toLowerCase().trim()
+                
+                if (!keyword) {
+                    renderPetCards(petsData)
+                    return
+                }
+                
+                const filtered = petsData.filter(pet => 
+                    pet.name.toLowerCase().includes(keyword) ||
+                    pet.breed.toLowerCase().includes(keyword) ||
+                    pet.age.toLowerCase().includes(keyword)
+                )
+                
+                renderPetCards(filtered)
+            })
+        }
+
+        // 初始化页面
+        function initialize() {
+            // Tailwind 配置
+            return {
+                config(userConfig = {}) {
+                    return {
+                        configUser: userConfig,
+                        theme: {
+                            extend: {
+                                colors: {
+                                    primary: '#ff4d4f'
+                                }
+                            }
+                        }
+                    }
+                },
+                theme: {
+                    extend: {}
+                }
+            }
+        }
+
+        // 启动
+        window.onload = function() {
+            const config = initialize().config()
+            const tailConfig = config.theme.extend
+            // 渲染全部宠物
+            renderPetCards(petsData)
+            // 初始化搜索
+            initSearch()
+            
+            console.log('%c✅ 宠物领养网页原型已成功初始化\n仿照图片电商卡片界面设计完成\n包含所有指定字段：名字、品种、年龄、性别、健康状况、领养状态、照片', 'color:#ff4d4f;font-size:13px;font-weight:600')
+        }
+    </script>
+</body>
+</html>

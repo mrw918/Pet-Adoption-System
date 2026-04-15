@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌宠领养 | 专业宠物领养平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+        
+        * { font-family: 'Noto Sans SC', system-ui, sans-serif; }
+        
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+        }
+        .card-image {
+            height: 220px;
+            object-fit: cover;
+        }
+        .filter-active {
+            background-color: #ff4d4f !important;
+            color: white !important;
+            border-color: #ff4d4f !important;
+        }
+        .modal {
+            animation: modalPop 0.3s ease forwards;
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- 导航栏 -->
+    <nav class="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-[#ff4d4f] rounded-2xl flex items-center justify-center text-white text-3xl">🐾</div>
+                    <span class="text-2xl font-bold text-[#ff4d4f]">萌宠领养</span>
+                </div>
+
+                <div class="flex-1 max-w-xl mx-8">
+                    <input type="text" id="searchInput" 
+                           placeholder="搜索宠物名字 / 品种 / 性格..."
+                           class="w-full h-11 pl-12 pr-6 bg-gray-100 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#ff4d4f]">
+                </div>
+
+                <div class="flex items-center gap-6 text-sm font-medium">
+                    <button onclick="resetFilters()" class="text-gray-500 hover:text-[#ff4d4f] flex items-center gap-1">
+                        <span>⟳</span> 重置全部
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-screen-2xl mx-auto px-6 py-8">
+        <!-- 筛选区域 -->
+        <div class="bg-white rounded-3xl shadow-sm border p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+
+                <!-- 领养状态筛选（新增） -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">📌 领养状态</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="toggleStatusFilter('all', this)" class="status-btn filter-active px-5 py-2 text-sm border border-gray-200 rounded-3xl">全部</button>
+                        <button onclick="toggleStatusFilter('待领养', this)" class="status-btn px-5 py-2 text-sm border border-gray-200 rounded-3xl">待领养</button>
+                        <button onclick="toggleStatusFilter('已领养', this)" class="status-btn px-5 py-2 text-sm border border-gray-200 rounded-3xl">已领养</button>
+                    </div>
+                </div>
+
+                <!-- 品种 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">🐶 品种</label>
+                    <div id="breedFilters" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto"></div>
+                </div>
+
+                <!-- 年龄 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">📅 年龄</label>
+                    <div id="ageFilters" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- 性格 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">🌟 性格特点</label>
+                    <div id="personalityFilters" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto"></div>
+                </div>
+
+                <!-- 排序 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">🔄 排序方式</label>
+                    <select id="sortSelect" onchange="applyFilters()" 
+                            class="w-full h-11 px-4 bg-gray-100 border border-gray-200 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#ff4d4f]">
+                        <option value="default">默认排序</option>
+                        <option value="ageAsc">年龄从小到大</option>
+                        <option value="ageDesc">年龄从大到小</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-3xl font-bold">全部待领养宠物（共 <span id="totalCount" class="text-[#ff4d4f]">0</span> 只）</h2>
+            <p id="resultInfo" class="text-gray-500"></p>
+        </div>
+        
+        <!-- 宠物卡片网格 -->
+        <div id="petGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="petModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onclick="if(event.target.id==='petModal') hideModal()">
+        <div onclick="event.stopImmediatePropagation()" class="modal bg-white max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl">
+            <button onclick="hideModal()" class="absolute top-6 right-6 w-10 h-10 bg-white rounded-2xl shadow text-3xl z-10">×</button>
+            <img id="modalImage" class="w-full h-80 object-cover">
+            <div class="p-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 id="modalName" class="text-4xl font-bold"></h1>
+                        <p id="modalBreed" class="text-[#ff4d4f] text-2xl font-medium"></p>
+                    </div>
+                    <div id="modalGender" class="text-6xl"></div>
+                </div>
+                <div class="mt-8 grid grid-cols-2 gap-x-8 gap-y-6 text-sm">
+                    <div><span class="text-gray-500">年龄</span><p id="modalAge" class="font-semibold text-lg"></p></div>
+                    <div><span class="text-gray-500">健康状况</span><p id="modalHealth" class="font-semibold text-lg"></p></div>
+                    <div class="col-span-2"><span class="text-gray-500">性格特点</span><p id="modalPersonality" class="text-lg leading-relaxed"></p></div>
+                </div>
+                <button onclick="applyAdoptFromModal()" class="mt-8 w-full bg-[#ff4d4f] hover:bg-[#ff3838] text-white py-5 rounded-3xl text-xl font-medium">立即申请领养</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 扩充后的宠物数据库（共 60 只）====================
+        const petsData = [
+            // 待领养（40只）
+            {id:1, name:"花花", breed:"边境牧羊犬", age:"4岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"聪明机敏,好奇探索,忠诚护主,贪玩调皮,勇敢自信", status:"待领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:2, name:"乐乐", breed:"拉布拉多", age:"2岁", gender:"雄性", health:"轻微过敏,已绝育", personality:"勇敢自信,温柔亲人,活泼好动,忠诚护主", status:"待领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:3, name:"点点", breed:"秋田犬", age:"8岁", gender:"雌性", health:"健康,已接种疫苗", personality:"好奇探索,聪明机敏,活泼好动,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:4, name:"星星", breed:"柯基", age:"6岁", gender:"雄性", health:"已绝育,健康", personality:"聪明机敏,好奇探索,活泼好动,忠诚护主", status:"待领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:5, name:"喵喵", breed:"贵宾犬", age:"12岁", gender:"雌性", health:"轻微牙结石,已驱虫", personality:"好奇探索,聪明机敏", status:"待领养", imageUrl:"https://picsum.photos/id/1009/800/600"},
+            {id:6, name:"点点", breed:"金渐层", age:"6岁", gender:"雄性", health:"已绝育,健康", personality:"贪玩调皮,忠诚护主,害羞谨慎", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:7, name:"阿黄", breed:"德国牧羊犬", age:"7岁", gender:"雌性", health:"已绝育,健康", personality:"活泼好动,温柔亲人,慵懒随和", status:"待领养", imageUrl:"https://picsum.photos/id/1016/800/600"},
+            {id:8, name:"贝贝", breed:"边境牧羊犬", age:"12岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"贪玩调皮,忠诚护主,独立安静", status:"待领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:9, name:"星星", breed:"挪威森林猫", age:"4岁", gender:"雌性", health:"健康,已接种疫苗", personality:"温柔亲人,活泼好动", status:"待领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:10, name:"可可", breed:"比格犬", age:"4岁", gender:"雌性", health:"轻微过敏,已绝育", personality:"独立安静,慵懒随和,好奇探索", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:11, name:"圆圆", breed:"比格犬", age:"1岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"慵懒随和,好奇探索,聪明机敏", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:12, name:"黑黑", breed:"苏格兰折耳", age:"1岁", gender:"雌性", health:"已绝育,健康", personality:"聪明机敏,活泼好动", status:"待领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:13, name:"豆豆", breed:"贵宾犬", age:"4岁", gender:"雄性", health:"已绝育,健康", personality:"独立安静,聪明机敏,好奇探索", status:"待领养", imageUrl:"https://picsum.photos/id/1016/800/600"},
+            {id:14, name:"团团", breed:"金毛犬", age:"5岁", gender:"雌性", health:"轻微过敏,已绝育", personality:"贪玩调皮,忠诚护主,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:15, name:"大黄", breed:"苏格兰折耳", age:"8岁", gender:"雄性", health:"轻微过敏,已绝育", personality:"聪明机敏,活泼好动", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:16, name:"咪咪", breed:"挪威森林猫", age:"4岁", gender:"雄性", health:"健康,已接种疫苗", personality:"温柔亲人,贪玩调皮", status:"待领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:17, name:"星星", breed:"缅因猫", age:"2岁", gender:"雌性", health:"健康,活泼", personality:"独立安静,慵懒随和,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:18, name:"阿黄", breed:"秋田犬", age:"7岁", gender:"雄性", health:"轻微过敏,已绝育", personality:"勇敢自信,温柔亲人,贪玩调皮", status:"待领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:19, name:"糖糖", breed:"柴犬", age:"4岁", gender:"雄性", health:"轻微牙结石,已驱虫", personality:"活泼好动,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/1009/800/600"},
+            {id:20, name:"妮妮", breed:"美短", age:"9岁", gender:"雄性", health:"健康,已接种疫苗", personality:"聪明机敏,慵懒随和", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            // 已领养（20只）
+            {id:21, name:"旺旺", breed:"拉布拉多", age:"11岁", gender:"雌性", health:"健康,已接种疫苗", personality:"独立安静,忠诚护主", status:"已领养", imageUrl:"https://picsum.photos/id/1016/800/600"},
+            {id:22, name:"宝宝", breed:"金毛犬", age:"10岁", gender:"雌性", health:"已绝育,健康", personality:"独立安静,活泼好动", status:"已领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:23, name:"毛毛", breed:"柯基", age:"6岁", gender:"雄性", health:"轻微牙结石,已驱虫", personality:"慵懒随和,活泼好动", status:"已领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:24, name:"团团", breed:"英短", age:"6岁", gender:"雄性", health:"健康,已接种疫苗", personality:"独立安静,聪明机敏", status:"已领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:25, name:"可可", breed:"哈士奇", age:"2岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"勇敢自信,独立安静", status:"已领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:26, name:"乐乐", breed:"苏格兰折耳", age:"5岁", gender:"雄性", health:"健康,已接种疫苗", personality:"害羞谨慎,独立安静", status:"已领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:27, name:"花花", breed:"柴犬", age:"12岁", gender:"雌性", health:"健康,已接种疫苗", personality:"忠诚护主,温柔亲人", status:"已领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:28, name:"贝贝", breed:"布偶猫", age:"11岁", gender:"雄性", health:"健康,已接种疫苗", personality:"忠诚护主,温柔亲人", status:"已领养", imageUrl:"https://picsum.photos/id/1009/800/600"},
+            {id:29, name:"豆豆", breed:"暹罗猫", age:"10岁", gender:"雌性", health:"已绝育,健康", personality:"独立安静,勇敢自信", status:"已领养", imageUrl:"https://picsum.photos/id/1016/800/600"},
+            {id:30, name:"黑黑", breed:"比格犬", age:"5岁", gender:"雌性", health:"已绝育,健康", personality:"勇敢自信,忠诚护主", status:"已领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            // 继续补充更多待领养数据...
+            {id:31, name:"咪咪", breed:"秋田犬", age:"3岁", gender:"雌性", health:"已绝育,健康", personality:"贪玩调皮,好奇探索,聪明机敏", status:"待领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:32, name:"大黄", breed:"暹罗猫", age:"10岁", gender:"雄性", health:"轻微过敏,已绝育", personality:"慵懒随和,好奇探索", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:33, name:"妮妮", breed:"秋田犬", age:"4岁", gender:"雌性", health:"轻微关节问题,已绝育", personality:"贪玩调皮,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:34, name:"贝贝", breed:"缅因猫", age:"5岁", gender:"雄性", health:"健康,已接种疫苗", personality:"忠诚护主,活泼好动", status:"待领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:35, name:"乐乐", breed:"金毛犬", age:"12岁", gender:"雌性", health:"健康,已接种疫苗", personality:"贪玩调皮,独立安静", status:"待领养", imageUrl:"https://picsum.photos/id/1009/800/600"},
+            {id:36, name:"糖糖", breed:"布偶猫", age:"12岁", gender:"雄性", health:"轻微过敏,已绝育", personality:"好奇探索,勇敢自信", status:"待领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:37, name:"小白", breed:"英短", age:"7岁", gender:"雄性", health:"轻微过敏,已绝育", personality:"好奇探索,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:38, name:"团团", breed:"波斯猫", age:"5岁", gender:"雌性", health:"健康,活泼", personality:"忠诚护主,聪明机敏", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:39, name:"星星", breed:"美短", age:"1岁", gender:"雌性", health:"轻微关节问题,已绝育", personality:"好奇探索,慵懒随和", status:"待领养", imageUrl:"https://picsum.photos/id/1016/800/600"},
+            {id:40, name:"喵喵", breed:"拉布拉多", age:"7岁", gender:"雄性", health:"已绝育,健康", personality:"好奇探索,独立安静", status:"待领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            // 更多已领养数据...
+            {id:41, name:"旺旺", breed:"布偶猫", age:"8岁", gender:"雌性", health:"轻微过敏,已绝育", personality:"温柔亲人,好奇探索", status:"已领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:42, name:"宝宝", breed:"苏格兰折耳", age:"9岁", gender:"雌性", health:"已绝育,健康", personality:"忠诚护主,聪明机敏", status:"已领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:43, name:"阿黄", breed:"柴犬", age:"4岁", gender:"雌性", health:"轻微关节问题,已绝育", personality:"忠诚护主,慵懒随和", status:"已领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:44, name:"糖糖", breed:"哈士奇", age:"2岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"勇敢自信,独立安静", status:"已领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:45, name:"毛毛", breed:"挪威森林猫", age:"3岁", gender:"雌性", health:"轻微过敏,已绝育", personality:"忠诚护主,聪明机敏", status:"已领养", imageUrl:"https://picsum.photos/id/1009/800/600"},
+            {id:46, name:"乐乐", breed:"缅因猫", age:"11岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"好奇探索,害羞谨慎", status:"已领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:47, name:"可可", breed:"挪威森林猫", age:"1岁", gender:"雌性", health:"已绝育,健康", personality:"害羞谨慎,聪明机敏", status:"已领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:48, name:"大黄", breed:"美短", age:"11岁", gender:"雌性", health:"健康,已接种疫苗", personality:"害羞谨慎,忠诚护主", status:"已领养", imageUrl:"https://picsum.photos/id/1016/800/600"},
+            {id:49, name:"黑黑", breed:"挪威森林猫", age:"1岁", gender:"雌性", health:"已绝育,健康", personality:"聪明机敏,慵懒随和", status:"已领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:50, name:"花花", breed:"哈士奇", age:"8岁", gender:"雌性", health:"轻微牙结石,已驱虫", personality:"害羞谨慎,好奇探索", status:"已领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:51, name:"毛毛", breed:"狸花猫", age:"11岁", gender:"雄性", health:"健康,活泼", personality:"忠诚护主,贪玩调皮", status:"已领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:52, name:"糖糖", breed:"英短", age:"12岁", gender:"雌性", health:"已绝育,健康", personality:"勇敢自信,贪玩调皮", status:"已领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:53, name:"乐乐", breed:"苏格兰折耳", age:"9岁", gender:"雄性", health:"轻微关节问题,已绝育", personality:"聪明机敏,忠诚护主", status:"已领养", imageUrl:"https://picsum.photos/id/1015/800/600"},
+            {id:54, name:"贝贝", breed:"拉布拉多", age:"1岁", gender:"雄性", health:"已绝育,健康", personality:"聪明机敏,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/1009/800/600"},
+            {id:55, name:"旺旺", breed:"柴犬", age:"10岁", gender:"雄性", health:"已绝育,健康", personality:"贪玩调皮,勇敢自信", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:56, name:"阿黄", breed:"秋田犬", age:"3岁", gender:"雄性", health:"已驱虫,已接种疫苗", personality:"好奇探索,慵懒随和", status:"待领养", imageUrl:"https://picsum.photos/id/201/800/600"},
+            {id:57, name:"喵喵", breed:"柴犬", age:"1岁", gender:"雄性", health:"健康,已接种疫苗", personality:"害羞谨慎,活泼好动", status:"待领养", imageUrl:"https://picsum.photos/id/160/800/600"},
+            {id:58, name:"咪咪", breed:"缅因猫", age:"7岁", gender:"雄性", health:"健康,已接种疫苗", personality:"聪明机敏,好奇探索", status:"待领养", imageUrl:"https://picsum.photos/id/1005/800/600"},
+            {id:59, name:"妮妮", breed:"布偶猫", age:"6岁", gender:"雄性", health:"已绝育,健康", personality:"活泼好动,温柔亲人", status:"待领养", imageUrl:"https://picsum.photos/id/133/800/600"},
+            {id:60, name:"乐乐", breed:"比格犬", age:"8岁", gender:"雄性", health:"轻微牙结石,已驱虫", personality:"活泼好动,忠诚护主", status:"待领养", imageUrl:"https://picsum.photos/id/1016/800/600"}
+        ];
+
+        let activeFilters = { breeds: [], ages: [], personalities: [], status: 'all' };
+        let currentPetId = null;
+
+        function getUniqueOptions() {
+            const breeds = [...new Set(petsData.map(p => p.breed))].sort();
+            const ages = [...new Set(petsData.map(p => p.age))].sort();
+            let traits = new Set();
+            petsData.forEach(p => p.personality.split(',').forEach(t => traits.add(t.trim())));
+            return { breeds, ages, personalities: Array.from(traits).sort() };
+        }
+
+        function createFilterButtons() {
+            const { breeds, ages, personalities } = getUniqueOptions();
+            
+            document.getElementById('breedFilters').innerHTML = breeds.map(b => 
+                `<button onclick="toggleFilter('breeds','${b}',this)" class="px-4 py-1.5 text-sm border border-gray-200 rounded-3xl hover:border-[#ff4d4f]">${b}</button>`).join('');
+            
+            document.getElementById('ageFilters').innerHTML = ages.map(a => 
+                `<button onclick="toggleFilter('ages','${a}',this)" class="px-4 py-1.5 text-sm border border-gray-200 rounded-3xl hover:border-[#ff4d4f]">${a}</button>`).join('');
+            
+            document.getElementById('personalityFilters').innerHTML = personalities.map(p => 
+                `<button onclick="toggleFilter('personalities','${p}',this)" class="px-4 py-1.5 text-sm border border-gray-200 rounded-3xl hover:border-[#ff4d4f]">${p}</button>`).join('');
+        }
+
+        function toggleFilter(type, value, btn) {
+            if (activeFilters[type].includes(value)) {
+                activeFilters[type] = activeFilters[type].filter(v => v !== value);
+                btn.classList.remove('filter-active');
+            } else {
+                activeFilters[type].push(value);
+                btn.classList.add('filter-active');
+            }
+            applyFilters();
+        }
+
+        function toggleStatusFilter(status, btn) {
+            document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('filter-active'));
+            btn.classList.add('filter-active');
+            activeFilters.status = status;
+            applyFilters();
+        }
+
+        function parseAge(age) {
+            return parseInt(age) || 0;
+        }
+
+        function applyFilters() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            let filtered = petsData.filter(pet => {
+                const matchSearch = !keyword || pet.name.toLowerCase().includes(keyword) || 
+                                   pet.breed.toLowerCase().includes(keyword) || pet.personality.toLowerCase().includes(keyword);
+                
+                const matchBreed = activeFilters.breeds.length === 0 || activeFilters.breeds.includes(pet.breed);
+                const matchAge = activeFilters.ages.length === 0 || activeFilters.ages.includes(pet.age);
+                const matchPersonality = activeFilters.personalities.length === 0 || 
+                    activeFilters.personalities.some(t => pet.personality.includes(t));
+                const matchStatus = activeFilters.status === 'all' || pet.status === activeFilters.status;
+                
+                return matchSearch && matchBreed && matchAge && matchPersonality && matchStatus;
+            });
+
+            const sortMode = document.getElementById('sortSelect').value;
+            if (sortMode === 'ageAsc') filtered.sort((a,b) => parseAge(a.age) - parseAge(b.age));
+            if (sortMode === 'ageDesc') filtered.sort((a,b) => parseAge(b.age) - parseAge(a.age));
+
+            renderPetCards(filtered);
+        }
+
+        function renderPetCards(filteredPets) {
+            const grid = document.getElementById('petGrid');
+            grid.innerHTML = '';
+
+            filteredPets.forEach(pet => {
+                const statusColor = pet.status === '待领养' ? 'bg-emerald-500' : 'bg-gray-400';
+                const card = `
+                <div onclick="showPetDetail(${pet.id})" class="product-card bg-white rounded-3xl overflow-hidden border border-gray-100 cursor-pointer">
+                    <div class="relative">
+                        <img src="${pet.imageUrl}" class="card-image w-full">
+                        <div class="absolute top-3 left-3 ${statusColor} text-white text-xs px-3 py-0.5 rounded-3xl">${pet.status}</div>
+                        <div class="absolute top-3 right-3 bg-white/90 text-[#ff4d4f] text-xs font-bold px-3 py-0.5 rounded-3xl">免费领养</div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-2xl font-bold">${pet.name}</h3>
+                                <p class="text-[#ff4d4f]">${pet.breed}</p>
+                            </div>
+                            <span class="text-4xl">${pet.gender === '雄性' ? '♂' : '♀'}</span>
+                        </div>
+                        <div class="mt-4 space-y-1 text-sm">
+                            <div>年龄：${pet.age}</div>
+                            <div>健康：${pet.health}</div>
+                            <div class="line-clamp-2">性格：${pet.personality}</div>
+                        </div>
+                        <button onclick="event.stopImmediatePropagation();applyAdopt(${pet.id});" 
+                                class="mt-6 w-full bg-[#ff4d4f] hover:bg-[#ff3838] text-white py-3 rounded-3xl text-sm font-medium">
+                            ${pet.status === '待领养' ? '立即申请领养' : '查看领养记录'}
+                        </button>
+                    </div>
+                </div>`;
+                grid.innerHTML += card;
+            });
+
+            document.getElementById('totalCount').textContent = filteredPets.length;
+            document.getElementById('resultInfo').textContent = `筛选结果：${filteredPets.length} 只符合条件`;
+        }
+
+        function showPetDetail(id) {
+            const pet = petsData.find(p => p.id === id);
+            if (!pet) return;
+            currentPetId = id;
+            document.getElementById('modalImage').src = pet.imageUrl;
+            document.getElementById('modalName').textContent = pet.name;
+            document.getElementById('modalBreed').textContent = pet.breed;
+            document.getElementById('modalGender').innerHTML = pet.gender === '雄性' ? '♂' : '♀';
+            document.getElementById('modalAge').textContent = pet.age;
+            document.getElementById('modalHealth').textContent = pet.health;
+            document.getElementById('modalPersonality').textContent = pet.personality;
+            document.getElementById('petModal').classList.remove('hidden');
+            document.getElementById('petModal').classList.add('flex');
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('petModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function applyAdoptFromModal() {
+            if (currentPetId) applyAdopt(currentPetId);
+            hideModal();
+        }
+
+        function applyAdopt(id) {
+            const pet = petsData.find(p => p.id === id);
+            alert(`🎉 您已成功提交「${pet.name}」(${pet.breed}) 的${pet.status === '待领养' ? '领养' : '查看'}申请！\n\n工作人员将在48小时内联系您。`);
+        }
+
+        function resetFilters() {
+            activeFilters = { breeds: [], ages: [], personalities: [], status: 'all' };
+            document.querySelectorAll('.filter-active').forEach(el => el.classList.remove('filter-active'));
+            document.querySelector('.status-btn').classList.add('filter-active');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sortSelect').value = 'default';
+            applyFilters();
+        }
+
+        window.onload = () => {
+            createFilterButtons();
+            renderPetCards(petsData);
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            console.log(`%c✅ 宠物领养平台已更新\n• 新增领养状态筛选（待领养 / 已领养）\n• 样本数据扩充至60只\n• 全部功能实时联动`, 'color:#ff4d4f;font-weight:600');
+        };
+    </script>
+</body>
+</html>
