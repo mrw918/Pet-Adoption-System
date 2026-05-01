@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Mochi corgi">
+  <rect width="800" height="600" fill="#f4efe8"/>
+  <circle cx="400" cy="300" r="118" fill="#c98f5b"/>
+  <polygon points="320,220 360,145 390,240" fill="#f0d8bf"/>
+  <polygon points="480,220 440,145 410,240" fill="#f0d8bf"/>
+  <circle cx="360" cy="290" r="15" fill="#2e2422"/>
+  <circle cx="440" cy="290" r="15" fill="#2e2422"/>
+  <ellipse cx="400" cy="332" rx="25" ry="17" fill="#2e2422"/>
+  <path d="M365 362c10 13 22 20 35 20s25-7 35-20" stroke="#2e2422" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <text x="400" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#855a3b">Mochi</text>
+</svg>

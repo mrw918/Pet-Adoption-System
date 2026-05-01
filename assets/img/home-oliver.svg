@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Oliver cat">
+  <rect width="800" height="600" fill="#eef1f6"/>
+  <circle cx="400" cy="300" r="118" fill="#9ea6b3"/>
+  <polygon points="320,235 355,150 390,245" fill="#8e97a5"/>
+  <polygon points="480,235 445,150 410,245" fill="#8e97a5"/>
+  <circle cx="360" cy="292" r="14" fill="#1f2730"/>
+  <circle cx="440" cy="292" r="14" fill="#1f2730"/>
+  <polygon points="400,320 386,340 414,340" fill="#d9868a"/>
+  <path d="M350 338h-62M350 352h-62M450 338h62M450 352h62" stroke="#1f2730" stroke-width="5" stroke-linecap="round"/>
+  <text x="400" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#5a6578">Oliver</text>
+</svg>

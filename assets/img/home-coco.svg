@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Coco poodle">
+  <rect width="800" height="600" fill="#fdf1ea"/>
+  <circle cx="400" cy="300" r="120" fill="#b7835f"/>
+  <circle cx="315" cy="230" r="48" fill="#9e6b49"/>
+  <circle cx="485" cy="230" r="48" fill="#9e6b49"/>
+  <circle cx="355" cy="288" r="14" fill="#2a2220"/>
+  <circle cx="445" cy="288" r="14" fill="#2a2220"/>
+  <ellipse cx="400" cy="330" rx="24" ry="16" fill="#2a2220"/>
+  <path d="M365 360c12 14 23 20 35 20s23-6 35-20" stroke="#2a2220" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <text x="400" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#7d563d">Coco</text>
+</svg>

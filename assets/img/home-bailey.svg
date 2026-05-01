@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Bailey dog">
+  <rect width="800" height="600" fill="#fff3e9"/>
+  <circle cx="400" cy="290" r="120" fill="#d9b389"/>
+  <ellipse cx="325" cy="210" rx="50" ry="78" fill="#b5875d"/>
+  <ellipse cx="475" cy="210" rx="50" ry="78" fill="#b5875d"/>
+  <circle cx="355" cy="280" r="14" fill="#3a2d28"/>
+  <circle cx="445" cy="280" r="14" fill="#3a2d28"/>
+  <ellipse cx="400" cy="325" rx="24" ry="16" fill="#3a2d28"/>
+  <path d="M360 354c12 15 26 22 40 22s28-7 40-22" stroke="#3a2d28" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <text x="400" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#8a6446">Bailey</text>
+</svg>
